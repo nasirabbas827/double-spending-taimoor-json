@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Double-Spending Attack Simulation</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        /* Custom CSS for Blockchain Simulation */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navigation */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    font-weight: 600;
+    border: none;
+}
+
+/* Status indicators */
+.display-4 {
+    opacity: 0.8;
+}
+
+/* Blockchain blocks */
+.card.bg-primary,
+.card.bg-secondary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.card.bg-success {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+.card.bg-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+
+.card.bg-danger {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%) !important;
+}
+
+.card.bg-info {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%) !important;
+}
+
+.card.bg-dark {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%) !important;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+}
+
+.btn-success {
+    background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+}
+
+.btn-warning {
+    background: linear-gradient(45deg, #f093fb, #f5576c);
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+}
+
+.btn-outline-warning {
+    border-color: #ffc107;
+    color: #ffc107;
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-outline-success {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.btn-outline-success:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* Form elements */
+.form-control,
+.form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Balance display */
+.badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+/* Blockchain visualization */
+#blockchainContainer .card {
+    margin-bottom: 1rem;
+    opacity: 0.95;
+}
+
+#blockchainContainer .card:hover {
+    opacity: 1;
+}
+
+/* Attack log */
+#attackLog {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+#attackLog .badge {
+    background-color: #6c757d !important;
+}
+
+/* Alerts */
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+/* Status indicators colors */
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+}
+    </style>
+</head>
+<body class="mb-4">
+    <!-- Navigation -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">
+            <i class="bi bi-shield-exclamation"></i>
+            Blockchain Double-Spending Attack Simulation
+        </span>
+        <div class="d-flex">
+            <form action="{{ url_for('mine_block') }}" method="post" class="me-2">
+                <button type="submit" class="btn btn-warning me-2">
+                    <i class="bi bi-pickaxe"></i> Mine
+                </button>
+            </form>
+            <a href="{{ url_for('view_plots') }}" class="btn btn-info me-2">
+                <i class="bi bi-graph-up"></i> View Plots
+            </a>
+            <a href="{{ url_for('download_csv') }}" class="btn btn-success me-2">
+                <i class="bi bi-download"></i> Download CSV
+            </a>
+            <form action="{{ url_for('reset_simulation') }}" method="post" class="me-2">
+                <button type="submit" class="btn btn-outline-warning">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </button>
+            </form>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-success">
+                <i class="bi bi-arrow-repeat"></i> Refresh
+            </a>
+        </div>
+    </div>
+</nav>
+
+    <div class="container-fluid mt-3">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} mb-3 alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Status Row -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-dark text-white">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <i class="bi bi-link-45deg display-4 text-primary"></i>
+                                    <h5>Chain Length</h5>
+                                    <h3>{{ chain_info.chain_length }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <i class="bi bi-clock-history display-4 text-warning"></i>
+                                    <h5>Pending TX</h5>
+                                    <h3>{{ chain_info.pending_transactions }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <i class="bi bi-cpu display-4 text-success"></i>
+                                    <h5>Mining Status</h5>
+                                    <h3>{{ 'Mining...' if is_mining else 'Idle' }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <i class="bi bi-shield-check display-4 text-info"></i>
+                                    <h5>Chain Valid</h5>
+                                    <h3>{{ '✓' if chain_info.is_valid else '✗' }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Panel - Controls -->
+            <div class="col-lg-4">
+                <!-- Account Balances -->
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="bi bi-wallet2"></i> Account Balances</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="balancesList">
+                            {% for account, balance in balances.items() %}
+                                {% set color_class = 'text-success' if balance > 50 else 'text-warning' if balance > 20 else 'text-danger' %}
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span><i class="bi bi-person-circle"></i> {{ account }}</span>
+                                    <span class="badge bg-secondary {{ color_class }}">{{ balance|round(2) }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Form -->
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="bi bi-arrow-left-right"></i> Create Transaction</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('create_transaction') }}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">From</label>
+                                <select class="form-select" name="sender" required>
+                                    <option value="">Select sender...</option>
+                                    {% for account in accounts %}
+                                        <option value="{{ account }}">{{ account }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">To</label>
+                                <select class="form-select" name="recipient" required>
+                                    <option value="">Select recipient...</option>
+                                    {% for account in accounts %}
+                                        <option value="{{ account }}">{{ account }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Amount</label>
+                                <input type="number" class="form-control" name="amount" 
+                                       step="0.01" min="0.01" placeholder="Enter amount" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-send"></i> Send Transaction
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Mining Controls -->
+                <div class="card mb-3">
+                    <div class="card-header bg-warning text-dark">
+                        <h5><i class="bi bi-cpu-fill"></i> Mining</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('mine_block') }}" method="post">
+                            <button type="submit" class="btn btn-warning w-100 mb-2">
+                                <i class="bi bi-pickaxe"></i> Mine Block
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Attack Simulation -->
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5><i class="bi bi-exclamation-triangle"></i> Double-Spending Attack</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <small><i class="bi bi-info-circle"></i> This simulates a 51% attack where the attacker creates a longer chain to reverse transactions.</small>
+                        </div>
+                        <form action="{{ url_for('execute_attack') }}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Victim</label>
+                                <select class="form-select" name="victim" required>
+                                    <option value="">Select victim...</option>
+                                    {% for account in accounts %}
+                                        <option value="{{ account }}">{{ account }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Attack Amount</label>
+                                <input type="number" class="form-control" name="amount" 
+                                       step="0.01" min="0.01" placeholder="Amount to double-spend" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Network Delay (seconds)</label>
+                                <input type="number" class="form-control" name="network_delay" 
+                                       step="0.1" min="0" placeholder="Enter network delay" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Hash Rate (% of honest network)</label>
+                                <input type="number" class="form-control" name="hash_rate" 
+                                       step="1" min="1" max="100" placeholder="Enter hash rate percentage" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-lightning"></i> Execute Attack
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Blockchain & Logs -->
+            <div class="col-lg-8">
+                <!-- Attack Log -->
+                {% if attack_log %}
+                <div class="card mb-3" id="attackLogCard">
+                    <div class="card-header bg-danger text-white">
+                        <h5><i class="bi bi-journal-text"></i> Attack Log</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="attackLog" style="max-height: 200px; overflow-y: auto;">
+                            {% for entry in attack_log %}
+                                <div class="mb-2">
+                                    <span class="badge bg-white">{{ entry.timestamp }}</span>
+                                    <span class="ms-2">{{ entry.message }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Blockchain Visualization -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="bi bi-diagram-3"></i> Blockchain</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="blockchainContainer" style="max-height: 1200px; overflow-y: auto;">
+                            {% for block in chain|reverse %}
+                                {% set is_genesis = block.index == 0 %}
+                                {% set block_color = 'bg-secondary' if is_genesis else 'bg-primary' %}
+                                <div class="card mb-3 {{ block_color }} text-white">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between">
+                                            <h6><i class="bi bi-box"></i> Block #{{ block.index }} {{ '(Genesis)' if is_genesis else '' }}</h6>
+                                            <small>{{ block.date }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <small><strong>Hash:</strong><br>{{ block.hash_short }}</small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small><strong>Previous:</strong><br>{{ block.previous_hash[:16] }}...</small>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small><strong>Nonce:</strong> {{ block.nonce }}</small>
+                                            <small class="ms-3"><strong>Transactions:</strong> {{ block.transactions|length }}</small>
+                                        </div>
+                                        {% if block.transactions %}
+                                            <div class="mt-2">
+                                                <small><strong>Transactions:</strong></small>
+                                                {% for tx in block.transactions %}
+                                                    <div class="bg-dark p-2 mt-1 rounded">
+                                                        <small>
+                                                            <i class="bi bi-arrow-right"></i>
+                                                            {{ tx.sender }} → {{ tx.recipient }}: <strong>{{ tx.amount }}</strong>
+                                                            <span class="text-muted">({{ tx.date }})</span>
+                                                        </small>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
